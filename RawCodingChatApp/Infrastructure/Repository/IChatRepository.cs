@@ -15,5 +15,7 @@ namespace RawCodingChatApp.Infrastructure.Repository
         Task<int> CreatePrivateRoom(string rootId, string targetId);
         IEnumerable<Chat> GetPrivateChats(string userId);
 
+        Task<Message> CreateMessage(int chatId, string message, string userId);
+
     }
 }

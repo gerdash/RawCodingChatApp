@@ -101,5 +101,20 @@ namespace RawCodingChatApp.Infrastructure.Repository
                 .ToList();
         }
 
+        public async Task<Message> CreateMessage(int chatId, string message, string userId)
+        {
+            var Message = new Message
+            {
+                ChatId = chatId,
+                Text = message,
+                Name = userId,
+                TimeStamp = DateTime.Now
+            };
+
+            _context.Messages.Add(Message);
+            await _context.SaveChangesAsync();
+
+            return Message;
+        }
     }
 }

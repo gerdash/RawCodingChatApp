@@ -8,12 +8,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using RawCodingChatApp.Models;
+using RawCodingChatApp.Infrastructure.Repository;
+using RawCodingChatApp.Infrastructure;
 
 namespace RawCodingChatApp.Controllers
 {
     [Authorize]
     [Route("[controller]")]
-    public class ChatController : Controller
+    public class ChatController : BaseController
     {
         private IHubContext<ChatHub> _chat;
         public ChatController(IHubContext<ChatHub> chat)
@@ -38,18 +40,9 @@ namespace RawCodingChatApp.Controllers
         public async Task<IActionResult> SendMessage(
             string message, 
             int roomId,
-            [FromServices] AppDbContext _context)
+            [FromServices] IChatRepository repo)
         {
-            var Message = new Message
-            {
-                ChatId = roomId,
-                Text = message,
-                Name = User.Identity.Name,
-                TimeStamp = DateTime.Now
-            };
-
-            _context.Messages.Add(Message);
-            await _context.SaveChangesAsync();
+            var Message = await repo.CreateMessage(roomId, message, GetUserId());
 
             await _chat.Clients.Group(roomId.ToString())
                 .SendAsync("ReceiveMessage", new { 
