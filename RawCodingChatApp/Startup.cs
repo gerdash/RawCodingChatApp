@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using RawCodingChatApp.Hubs;
+using RawCodingChatApp.Infrastructure.Repository;
 
 namespace RawCodingChatApp
 {
@@ -42,6 +43,7 @@ namespace RawCodingChatApp
                 })
                 .AddEntityFrameworkStores<AppDbContext>()
                 .AddDefaultTokenProviders();
+            services.AddTransient<IChatRepository, ChatRepository>();
             services.AddSignalR();
 
         }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using RawCodingChatApp.Database;
 using RawCodingChatApp.Infrastructure;
+using RawCodingChatApp.Infrastructure.Repository;
 using RawCodingChatApp.Models;
 using System;
 using System.Collections.Generic;
@@ -18,27 +19,23 @@ namespace RawCodingChatApp.Controllers
     public class HomeController : BaseController
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly AppDbContext _context;
+        private readonly IChatRepository _repo;
 
-        public HomeController(ILogger<HomeController> logger, AppDbContext context)
+        public HomeController(ILogger<HomeController> logger, IChatRepository repo)
         {
             _logger = logger;
-            _context = context;
+            _repo = repo;
         }
 
         public IActionResult Index()
         {
-            var chats = _context.Chats
-                .Include(x => x.Users)
-                .Where(x => !x.Users
-                .Any(y => y.UserId == User.GetUserId()))
-                .ToList();
+            var chats = _repo.GetChats(GetUserId());
             return View(chats);
         }
 
-        public IActionResult Find()
+        public IActionResult Find([FromServices] AppDbContext context)
         {
-            var users = _context.Users
+            var users = context.Users
                 .Where(u => u.Id != User.GetUserId())
                 .ToList();
 
@@ -47,98 +44,36 @@ namespace RawCodingChatApp.Controllers
 
         public IActionResult Private()
         {
-            var chats = _context.Chats
-                .Include(x => x.Users)
-                .ThenInclude(x => x.User)
-                .Where(x => x.Type == ChatType.Private
-                && x.Users.Any(y => y.UserId == User.GetUserId()))
-                .ToList();
+            var chats = _repo.GetPrivateChats(GetUserId());
 
             return View(chats);
         }
 
         public async Task<IActionResult> CreatePrivateRoom(string userId)
         {
-            var chat = new Chat
-            {
-                Type = ChatType.Private
-            };
-
-            chat.Users.Add(new ChatUser
-                {
-                    UserId = userId
-                });
-
-            _context.Chats.Add(chat);
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction("Chat", new { id = chat.Id});
+            var id = await _repo.CreatePrivateRoom(GetUserId(), userId);
+            return RedirectToAction("Chat", new { id });
         }
 
         [HttpGet("{id}")]
        public IActionResult Chat(int id)
         {
-            var chat = _context.Chats
-                .Include(c => c.Messages)
-                .FirstOrDefault(c => c.Id == id);
+            var chat = _repo.GetChat(id);
             return View(chat);
-        }
-
-      
-
-        [HttpPost]
-        public async Task<IActionResult> CreateMessage(int chatId, string message)
-        {
-            var Message = new Message
-            {
-                ChatId = chatId,
-                Text = message,
-                Name = User.Identity.Name,
-                TimeStamp=DateTime.Now
-            };
-
-            _context.Messages.Add(Message);
-            await _context.SaveChangesAsync();
-            return RedirectToAction("Chat", new { id = chatId});
         }
 
         [HttpPost]
         public async Task<IActionResult> CreateRoom(string name)
         {
-            var chat = new Chat
-            {
-                Name = name,
-                Type = ChatType.Room
-            };
-
-            chat.Users.Add(new ChatUser {
-
-                UserId = User.GetUserId(),
-                Role = UserRole.Admin
-            }); 
-
-            _context.Chats.Add(chat);
-
-            await _context.SaveChangesAsync();
-
+            await _repo.CreateRoom(name, GetUserId());
             return RedirectToAction("Index");
         }
 
         [HttpGet]
         public async Task<IActionResult> JoinRoom(int id)
         {
-            var chatUser = new ChatUser
-            {
-                ChatId = id,
 
-                UserId = User.GetUserId(),
-                Role = UserRole.Member
-            };
-
-            _context.ChatUsers.Add(chatUser);
-
-            await _context.SaveChangesAsync();
-
+            await _repo.JoinRoom(id, GetUserId());
             return RedirectToAction("Chat", "Home", new { id = id});
 
         }
