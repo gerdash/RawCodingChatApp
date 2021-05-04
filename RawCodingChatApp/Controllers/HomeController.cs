@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using RawCodingChatApp.Database;
+using RawCodingChatApp.Infrastructure;
 using RawCodingChatApp.Models;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,7 @@ using System.Threading.Tasks;
 namespace RawCodingChatApp.Controllers
 {
     [Authorize]
-    public class HomeController : Controller
+    public class HomeController : BaseController
     {
         private readonly ILogger<HomeController> _logger;
         private readonly AppDbContext _context;
@@ -30,7 +31,7 @@ namespace RawCodingChatApp.Controllers
             var chats = _context.Chats
                 .Include(x => x.Users)
                 .Where(x => !x.Users
-                .Any(y => y.UserId == User.FindFirst(ClaimTypes.NameIdentifier).Value))
+                .Any(y => y.UserId == GetUserId()))
                 .ToList();
             return View(chats);
         }
