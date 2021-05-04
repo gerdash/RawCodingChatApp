@@ -31,7 +31,7 @@ namespace RawCodingChatApp.Controllers
             var chats = _context.Chats
                 .Include(x => x.Users)
                 .Where(x => !x.Users
-                .Any(y => y.UserId == GetUserId()))
+                .Any(y => y.UserId == User.GetUserId()))
                 .ToList();
             return View(chats);
         }
@@ -39,7 +39,7 @@ namespace RawCodingChatApp.Controllers
         public IActionResult Find()
         {
             var users = _context.Users
-                .Where(u => u.Id != User.FindFirst(ClaimTypes.NameIdentifier).Value)
+                .Where(u => u.Id != User.GetUserId())
                 .ToList();
 
                 return View(users);
@@ -51,7 +51,7 @@ namespace RawCodingChatApp.Controllers
                 .Include(x => x.Users)
                 .ThenInclude(x => x.User)
                 .Where(x => x.Type == ChatType.Private
-                && x.Users.Any(y => y.UserId == User.FindFirst(ClaimTypes.NameIdentifier).Value))
+                && x.Users.Any(y => y.UserId == User.GetUserId()))
                 .ToList();
 
             return View(chats);
@@ -113,7 +113,7 @@ namespace RawCodingChatApp.Controllers
 
             chat.Users.Add(new ChatUser {
 
-                UserId = User.FindFirst(ClaimTypes.NameIdentifier).Value,
+                UserId = User.GetUserId(),
                 Role = UserRole.Admin
             }); 
 
@@ -131,7 +131,7 @@ namespace RawCodingChatApp.Controllers
             {
                 ChatId = id,
 
-                UserId = User.FindFirst(ClaimTypes.NameIdentifier).Value,
+                UserId = User.GetUserId(),
                 Role = UserRole.Member
             };
 
