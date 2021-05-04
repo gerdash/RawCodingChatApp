@@ -36,30 +36,52 @@
             var footer = null;
 
             return {
-                createMessage: function () {
-                    var message = document.createElement("div")
+                createMessage: function (classList) {
+                    message = document.createElement("div")
+                    if (classList === undefined) 
+                        classList = [];
+                    
+                    for (var i = 0; i < classList.length; i++) {
+                        message.classList.Add(classList[i])
+                    }
+
                     message.classList.add('message')
+                    return this;
+                },
+                withHeader: function (text) {
+                    header = document.createElement("header")
+                    header.appendChild(document.createTextNode(text))
+                    return this;
+                },
+                withParagraph: function (text) {
+                    p = document.createElement("p")
+                    p.appendChild(document.createTextNode(text))
+                    return this;
+                },
+                withFooter: function (text) {
+                    footer = document.createElement("footer")
+                    footer.appendChild(document.createTextNode(text))
+                    return this;
+                },
+                build: function () {
+                    message.appendChild(header);
+                    message.appendChild(p);
+                    message.appendChild(footer);
+                    return message;
                 }
             }
-
         }
 
         connection.on("ReceiveMessage", function (data) {
             console.log(data);
-           
-            var header = document.createElement("header")
-            header.appendChild(document.createTextNode(data.name))
-            var p = document.createElement("p")
-            p.appendChild(document.createTextNode(data.text))
-            var footer = document.createElement("footer")
-            footer.appendChild(document.createTextNode(data.timeStamp))
+            var message = messageBuilder()
+                .createMessage()
+                .withHeader(data.name)
+                .withParagraph(data.text)
+                .withFooter(data.timeStamp)
+                .build();
 
-            message.appendChild(header);
-            message.appendChild(p);
-            message.appendChild(footer);
-
-            var body = document.querySelector('.chat-body')
-            body.append(message);
+            document.querySelector('.chat-body').append(message);
         })
 
 
