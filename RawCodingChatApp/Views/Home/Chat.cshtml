@@ -47,28 +47,15 @@
 
         connection.start()
             .then(function () {
-                connection.invoke('getConnectionId')
-                    .then(function (connectionId) {
-                        _connectionId = connectionId
-                        joinRoom();
-                    })
+                connection.invoke('joinRoom', '@Model.Id');
             })
             .catch(function (error) {
                 console.log(error)
             })
- 
-        var joinRoom = function () {
-            var url = 'https://localhost:44329/Chat/JoinRoom/'+ _connectionId +'/@Model.Id'
 
-                axios.post(url, null)
-                    .then(res => {
-
-                        console.log("Room Joined!");
-                    })
-                    .catch(err => {
-                        console.log("Failed to join room!");
-                    })
-        }
+        window.addEventListener('onunload', function () {
+            connection.invoke('leaveRoom', '@Model.Id');
+        })
 
         var sendMessage = function (event) {
             event.preventDefault();

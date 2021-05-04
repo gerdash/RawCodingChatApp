@@ -22,19 +22,6 @@ namespace RawCodingChatApp.Controllers
         {
             _chat = chat;
         }
-        [HttpPost("[action]/{connectionId}/{roomId}")]
-        public async Task<IActionResult> JoinRoom(string connectionId, string roomId)
-        {
-            await _chat.Groups.AddToGroupAsync(connectionId, roomId);
-            return Ok();
-        }
-
-         [HttpPost("[action]/{connectionId}/{roomId}")]
-        public async Task<IActionResult> LeaveRoom(string connectionId, string roomId)
-        {
-            await _chat.Groups.RemoveFromGroupAsync(connectionId, roomId);
-            return Ok();
-        }
 
         [HttpPost("[action]")]
         public async Task<IActionResult> SendMessage(
@@ -42,7 +29,7 @@ namespace RawCodingChatApp.Controllers
             int roomId,
             [FromServices] IChatRepository repo)
         {
-            var Message = await repo.CreateMessage(roomId, message, GetUserId());
+            var Message = await repo.CreateMessage(roomId, message, User.Identity.Name);
 
             await _chat.Clients.Group(roomId.ToString())
                 .SendAsync("ReceiveMessage", new { 

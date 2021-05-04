@@ -8,9 +8,14 @@ namespace RawCodingChatApp.Hubs
 {
     public class ChatHub : Hub
     {
-        public string GetConnectionId()
+        public Task JoinRoom(string roomId)
         {
-            return Context.ConnectionId;
+            return Groups.AddToGroupAsync(Context.ConnectionId, roomId);
+        }
+
+        public Task LeaveRoom(string roomId)
+        {
+            return Groups.RemoveFromGroupAsync(Context.ConnectionId, roomId);
         }
     }
 }
